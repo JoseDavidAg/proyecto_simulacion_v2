@@ -6,6 +6,7 @@ package Vista;
 
 
 import funcion.ContenidoCSV;
+import funcion.CustomCellRenderer;
 import funcion.GenerarDatos;
 import funcion.GraficaSimulacion;
 import funcion.GraficaSimulacionTn;
@@ -37,70 +38,63 @@ public class Ingresar_CSV extends javax.swing.JFrame {
 private String nombreArchivo="Plantilla/Plantilla.csv";
  private DefaultTableModel originalModel;
     
-    public Ingresar_CSV() {
-        initComponents();
-          
+public Ingresar_CSV() {
+    initComponents();
+
     // Obtener el archivo desde los recursos del proyecto
     File archivoCSV;
     try {
         archivoCSV = new File(getClass().getClassLoader().getResource(nombreArchivo).toURI());
     } catch (Exception e) {
-        JOptionPane.showMessageDialog(this, "No se pudo localizar el archivo dentro del proyecto: " + nombreArchivo);
+        JOptionPane.showMessageDialog(this, "No se pudo localizar el archivo dentro del proyecto: " + nombreArchivo, "Error", JOptionPane.ERROR_MESSAGE);
         return;
     }
 
     // Verificar si el archivo existe
     if (!archivoCSV.exists()) {
-        JOptionPane.showMessageDialog(this, "El archivo especificado no existe en los recursos del proyecto: " + nombreArchivo);
+        JOptionPane.showMessageDialog(this, "El archivo especificado no existe en los recursos del proyecto: " + nombreArchivo, "Error", JOptionPane.ERROR_MESSAGE);
         return;
     }
 
-    // Leer el archivo
+    // Leer el archivo CSV
     try (BufferedReader br = new BufferedReader(new FileReader(archivoCSV))) {
         String line;
-        ContenidoCSV contenidoCSV = new ContenidoCSV();
-        contenidoCSV.limpiar();
 
         DefaultTableModel model = (DefaultTableModel) JTableCSV.getModel();
-        model.setRowCount(0);
-        model.setColumnCount(4); // Fijar el número de columnas a 6
+        model.setRowCount(0); // Limpiar la tabla existente
 
-        // Establecer nombres de columna genéricos
-        
+        boolean isHeader = true;
+
         while ((line = br.readLine()) != null) {
-            // Dividir la línea en columnas
+            // Dividir la línea respetando comas dentro de valores entre comillas
             String[] values = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
 
-            // Asegurar que haya siempre 6 columnas
-            if (values.length < 4) {
-                values = Arrays.copyOf(values, 4); // Completar con valores vacíos si faltan
+            if (isHeader) {
+                // Configurar los nombres de las columnas en la primera línea
+                model.setColumnIdentifiers(values);
+                isHeader = false;
+            } else {
+                // Agregar filas según el formato del archivo
+                model.addRow(values);
             }
-
-            contenidoCSV.agregarFila(values); // Agregar a la estructura
-            model.addRow(values); // Agregar la fila al JTable
         }
 
-    
+        JOptionPane.showMessageDialog(this, "Archivo CSV cargado correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+
     } catch (IOException e) {
-        JOptionPane.showMessageDialog(this, "Error al leer el archivo CSV: " + e.getMessage());
+        JOptionPane.showMessageDialog(this, "Error al leer el archivo CSV: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
     }
-    
-    
-    //
-         // Personalizar las barras de desplazamiento
-        JScrollBar verticalScrollBar = jScrollPane1.getVerticalScrollBar();
-        verticalScrollBar.setUI(new Principal2.CustomScrollBarUI());
 
-        JScrollBar horizontalScrollBar = jScrollPane1.getHorizontalScrollBar();
-        horizontalScrollBar.setUI(new Principal2.CustomScrollBarUI());
-        
-        
-    
-        
-    }
+    // Personalizar las barras de desplazamiento
+    JScrollBar verticalScrollBar = jScrollPane1.getVerticalScrollBar();
+    verticalScrollBar.setUI(new Principal2.CustomScrollBarUI());
+
+    JScrollBar horizontalScrollBar = jScrollPane1.getHorizontalScrollBar();
+    horizontalScrollBar.setUI(new Principal2.CustomScrollBarUI());
+}
+
   
-    
-
+   
 
 
     /**
@@ -135,14 +129,11 @@ private String nombreArchivo="Plantilla/Plantilla.csv";
         jLabel16 = new javax.swing.JLabel();
         btnSeleccionar1 = new javax.swing.JPanel();
         jLabel17 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
         jPanel18 = new javax.swing.JPanel();
         jLabel15 = new javax.swing.JLabel();
         datoslbl = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        jList1 = new javax.swing.JList<>();
-        jSlider1 = new javax.swing.JSlider();
+        añosSlider = new javax.swing.JSlider();
 
         jPanel6.setBackground(new java.awt.Color(0, 38, 79));
         jPanel6.setForeground(new java.awt.Color(0, 38, 79));
@@ -275,26 +266,18 @@ private String nombreArchivo="Plantilla/Plantilla.csv";
 
         JTableCSV.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+                {},
+                {},
+                {},
+                {}
             },
             new String [] {
-                "Tasa natalidad normal", "Esperanza de vida normal", "Relacion desechos-contaminacion", "Ocupacion inadecuada de residuos"
-            }
-        ) {
-            boolean[] canEdit = new boolean [] {
-                false, false, false, false
-            };
 
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
             }
-        });
+        ));
         table1.setViewportView(JTableCSV);
 
-        Panel1.add(table1, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 170, 820, 300));
+        Panel1.add(table1, new org.netbeans.lib.awtextra.AbsoluteConstraints(70, 170, 820, 300));
 
         jPanel5.setBackground(new java.awt.Color(153, 153, 153));
         jPanel5.setForeground(new java.awt.Color(204, 204, 204));
@@ -323,8 +306,6 @@ private String nombreArchivo="Plantilla/Plantilla.csv";
         jPanel15.setBackground(new java.awt.Color(153, 153, 153));
         jPanel15.setForeground(new java.awt.Color(0, 52, 107));
 
-        jPanel16.setPreferredSize(new java.awt.Dimension(10, 10));
-
         javax.swing.GroupLayout jPanel16Layout = new javax.swing.GroupLayout(jPanel16);
         jPanel16.setLayout(jPanel16Layout);
         jPanel16Layout.setHorizontalGroup(
@@ -342,14 +323,14 @@ private String nombreArchivo="Plantilla/Plantilla.csv";
             jPanel15Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel15Layout.createSequentialGroup()
                 .addGap(36, 36, 36)
-                .addComponent(jPanel16, javax.swing.GroupLayout.PREFERRED_SIZE, 710, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jPanel16, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(44, Short.MAX_VALUE))
         );
         jPanel15Layout.setVerticalGroup(
             jPanel15Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel15Layout.createSequentialGroup()
                 .addGap(38, 38, 38)
-                .addComponent(jPanel16, javax.swing.GroupLayout.PREFERRED_SIZE, 340, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jPanel16, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(42, Short.MAX_VALUE))
         );
 
@@ -389,7 +370,7 @@ private String nombreArchivo="Plantilla/Plantilla.csv";
         jLabel10.setBackground(new java.awt.Color(0, 0, 0));
         jLabel10.setFont(new java.awt.Font("Segoe UI", 2, 18)); // NOI18N
         jLabel10.setText("(años)");
-        Panel1.add(jLabel10, new org.netbeans.lib.awtextra.AbsoluteConstraints(700, 580, -1, -1));
+        Panel1.add(jLabel10, new org.netbeans.lib.awtextra.AbsoluteConstraints(500, 540, -1, -1));
 
         jLabel16.setBackground(new java.awt.Color(0, 0, 0));
         jLabel16.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
@@ -427,21 +408,6 @@ private String nombreArchivo="Plantilla/Plantilla.csv";
 
         Panel1.add(btnSeleccionar1, new org.netbeans.lib.awtextra.AbsoluteConstraints(770, 560, 120, 40));
 
-        jTextField1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField1ActionPerformed(evt);
-            }
-        });
-        jTextField1.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                jTextField1KeyPressed(evt);
-            }
-            public void keyTyped(java.awt.event.KeyEvent evt) {
-                jTextField1KeyTyped(evt);
-            }
-        });
-        Panel1.add(jTextField1, new org.netbeans.lib.awtextra.AbsoluteConstraints(420, 650, 160, 30));
-
         jPanel18.setBackground(new java.awt.Color(153, 153, 153));
         jPanel18.setForeground(new java.awt.Color(0, 98, 107));
         jPanel18.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -474,32 +440,21 @@ private String nombreArchivo="Plantilla/Plantilla.csv";
         Panel1.add(jPanel18, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 770, -1, -1));
 
         datoslbl.setFont(new java.awt.Font("Segoe UI Light", 0, 14)); // NOI18N
-        Panel1.add(datoslbl, new org.netbeans.lib.awtextra.AbsoluteConstraints(370, 490, 250, 20));
+        Panel1.add(datoslbl, new org.netbeans.lib.awtextra.AbsoluteConstraints(360, 490, 250, 20));
 
         jLabel7.setBackground(new java.awt.Color(0, 0, 0));
         jLabel7.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabel7.setText("Ejemplo de CSV a ingresar:");
         Panel1.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 140, -1, -1));
 
-        jList1.setFont(new java.awt.Font("Segoe UI", 0, 10)); // NOI18N
-        jList1.setModel(new javax.swing.AbstractListModel<String>() {
-            String[] strings = { "año 1", "año 2", "año 3" };
-            public int getSize() { return strings.length; }
-            public String getElementAt(int i) { return strings[i]; }
-        });
-        jScrollPane2.setViewportView(jList1);
-
-        Panel1.add(jScrollPane2, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 190, -1, 60));
-
-        jSlider1.setMinorTickSpacing(10);
-        jSlider1.setPaintLabels(true);
-        jSlider1.setPaintTicks(true);
-        jSlider1.setSnapToTicks(true);
-        Panel1.add(jSlider1, new org.netbeans.lib.awtextra.AbsoluteConstraints(350, 570, 330, 40));
+        añosSlider.setMajorTickSpacing(10);
+        añosSlider.setPaintLabels(true);
+        añosSlider.setPaintTicks(true);
+        Panel1.add(añosSlider, new org.netbeans.lib.awtextra.AbsoluteConstraints(390, 570, 280, -1));
 
         jScrollPane1.setViewportView(Panel1);
 
-        getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, 640));
+        getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 950, 1770));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -531,40 +486,22 @@ private String nombreArchivo="Plantilla/Plantilla.csv";
     }//GEN-LAST:event_jPanel17MouseClicked
 
     private void btnSeleccionar1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnSeleccionar1MouseClicked
-         
-        int cantidadDeFilas = Integer.parseInt(jTextField1.getText());  // 'añosSlider' es el slider con la cantidad de filas a generar
 
-        // Llamar al método que genera los nuevos datos
-        GenerarDatos.generarMasDatos(JTableCSV, cantidadDeFilas);      // TODO add your handling code here:
+                int cantidadDeFilas = añosSlider.getValue();  // 'añosSlider' es el slider con la cantidad de filas a generar
+// Llama a generar datos nuevos
+GenerarDatos.generarMasDatos(JTableCSV, cantidadDeFilas);
+
+// Aplica el renderizador personalizado, pasando la cantidad de filas originales
+JTableCSV.setDefaultRenderer(Object.class, new CustomCellRenderer(GenerarDatos.filasOriginales));    // TODO add your handling code here:
         calcularValores(); 
         
-        GraficaSimulacion.graficarDesdeTabla(JTableCSV, jPanel8);  // TODO add your handling code here:
-        GraficaSimulacionTn.graficarDesdeTabla(JTableCSV, jPanel16); 
+       GraficaSimulacion.graficarDesdeTabla(JTableCSV, jPanel8);  // TODO add your handling code here:
+        GraficaSimulacionTn.graficarTasasDeNatalidad(JTableCSV, jPanel16); 
     }//GEN-LAST:event_btnSeleccionar1MouseClicked
 
     private void jPanel18MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jPanel18MouseClicked
         // TODO add your handling code here:
     }//GEN-LAST:event_jPanel18MouseClicked
-
-    private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField1ActionPerformed
-
-    private void jTextField1KeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextField1KeyPressed
-         
-    }//GEN-LAST:event_jTextField1KeyPressed
-
-    private void jTextField1KeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextField1KeyTyped
-        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
-                        // Llama al método del botón al presionar Enter
-                      
-                    }
-        char c = evt.getKeyChar();
-                    // Permitir solo dígitos y teclas de control (como borrar)
-                    if (!Character.isDigit(c) && c != KeyEvent.VK_BACK_SPACE) {
-                        evt.consume(); // Ignorar el evento
-                    }
-    }//GEN-LAST:event_jTextField1KeyTyped
 
     private void btnSeleccionarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnSeleccionarMouseClicked
         cargarCsv();        // TODO add your handling code here:
@@ -607,6 +544,7 @@ private String nombreArchivo="Plantilla/Plantilla.csv";
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTable JTableCSV;
     private javax.swing.JPanel Panel1;
+    private javax.swing.JSlider añosSlider;
     private javax.swing.JPanel btnSeleccionar;
     private javax.swing.JPanel btnSeleccionar1;
     private javax.swing.JLabel datoslbl;
@@ -621,7 +559,6 @@ private String nombreArchivo="Plantilla/Plantilla.csv";
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
-    private javax.swing.JList<String> jList1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel15;
     private javax.swing.JPanel jPanel16;
@@ -632,13 +569,10 @@ private String nombreArchivo="Plantilla/Plantilla.csv";
     private javax.swing.JPanel jPanel6;
     private javax.swing.JPanel jPanel8;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JSlider jSlider1;
-    private javax.swing.JTextField jTextField1;
     private javax.swing.JScrollPane table1;
     // End of variables declaration//GEN-END:variables
 
-    private void cargarCsv() {
+private void cargarCsv() {
      ContenidoCSV contenidoCSV = new ContenidoCSV();
         
         // Cargar los datos desde el archivo CSV
@@ -659,13 +593,12 @@ private String nombreArchivo="Plantilla/Plantilla.csv";
 
         // Asignar el modelo de la tabla al JTable
         JTableCSV.setModel(model);
-        originalModel=model;
 }
-  
-    
-    private void calcularValores() {
+
+private void calcularValores() {
     DefaultTableModel model = (DefaultTableModel) JTableCSV.getModel();
     int rowCount = model.getRowCount();
+
     if (rowCount == 0) {
         datoslbl.setText("La tabla está vacía. Carga un archivo CSV primero.");
         return;
@@ -680,65 +613,31 @@ private String nombreArchivo="Plantilla/Plantilla.csv";
 
     try {
         for (int i = 0; i < rowCount; i++) {
-            double tasaNatalidadNormal = Double.parseDouble((String) model.getValueAt(i, 0));
-            double esperanzaVidaNormal = Double.parseDouble((String) model.getValueAt(i, 1));
-            double relacionDesechos = Double.parseDouble((String) model.getValueAt(i, 2));
-            double ocupacionInadecuada = Double.parseDouble((String) model.getValueAt(i, 3));
+            int anio = Integer.parseInt((String) model.getValueAt(i, 0)); // Columna "Año"
+            double tasaNatalidadNormal = Double.parseDouble((String) model.getValueAt(i, 1)); // Tasa natalidad
+            double esperanzaVidaNormal = Double.parseDouble((String) model.getValueAt(i, 2)); // Esperanza de vida
+            double relacionDesechos = Double.parseDouble((String) model.getValueAt(i, 3)); // Relación desechos
+            double ocupacionInadecuada = Double.parseDouble((String) model.getValueAt(i, 4)); // Ocupación inadecuada
 
             // Cálculo de daño ambiental
             double danioAmbiental = relacionDesechos + ocupacionInadecuada;
 
-            // Cálculo de tasa de natalidad
-            double tasaNatalidad = tasaNatalidadNormal - (danioAmbiental * 8.35e-5);
+            // Cálculo de tasa de natalidad calculada
+            double tasaNatalidadCalculada = tasaNatalidadNormal - (danioAmbiental * 8.35e-5);
 
-            // Cálculo de esperanza de vida
-            double esperanzaVida = esperanzaVidaNormal * (1 - danioAmbiental * 0.07);
+            // Cálculo de esperanza de vida calculada
+            double esperanzaVidaCalculada = esperanzaVidaNormal * (1 - danioAmbiental * 0.07);
 
             // Agregar los resultados calculados directamente en las nuevas columnas
-            model.setValueAt(String.format("%.4f", danioAmbiental), i, 4); // Columna "Daño Ambiental"
-            model.setValueAt(String.format("%.4f", tasaNatalidad), i, 5); // Columna "Tasa de Natalidad Calculada"
-            model.setValueAt(String.format("%.2f", esperanzaVida), i, 6); // Columna "Esperanza de Vida Calculada"
+            model.setValueAt(String.format("%.4f", danioAmbiental), i, 5); // Columna "Daño Ambiental"
+            model.setValueAt(String.format("%.4f", tasaNatalidadCalculada), i, 6); // Columna "Tasa de Natalidad Calculada"
+            model.setValueAt(String.format("%.2f", esperanzaVidaCalculada), i, 7); // Columna "Esperanza de Vida Calculada"
         }
-        datoslbl.setVisible(true);
+
         datoslbl.setText("Valores calculados y añadidos a la tabla.");
     } catch (Exception ex) {
-        datoslbl.setVisible(true);
         datoslbl.setText("Error en el cálculo: " + ex.getMessage());
     }
 }
-    
-    
-    
-    static class CustomScrollBarUI extends BasicScrollBarUI {
-        private static final int THUMB_SIZE = 10;
-
-        @Override
-        protected void configureScrollBarColors() {
-            this.thumbColor = new Color(153,153,153); // Color del "pulgar"
-            this.trackColor = new Color(255,255,255); // Color de la pista
-        }
-
-        protected Dimension getThumbSize() {
-            return new Dimension(THUMB_SIZE, THUMB_SIZE);
-        }
-
-        @Override
-        protected JButton createDecreaseButton(int orientation) {
-            return createZeroButton(); // Sin botones
-        }
-
-        @Override
-        protected JButton createIncreaseButton(int orientation) {
-            return createZeroButton(); // Sin botones
-        }
-
-        private JButton createZeroButton() {
-            JButton button = new JButton();
-            button.setPreferredSize(new Dimension(0, 0));
-            button.setMinimumSize(new Dimension(0, 0));
-            button.setMaximumSize(new Dimension(0, 0));
-            return button;
-        }
-    }
 
 }

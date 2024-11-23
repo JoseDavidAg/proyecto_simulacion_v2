@@ -1,6 +1,5 @@
 package funcion;
 
-import Vista.grafica;
 import javax.swing.JTable;
 import javax.swing.JPanel;
 import javax.swing.BorderFactory;
@@ -28,21 +27,25 @@ public class GraficaSimulacion {
         XYSeries seriesNormal = new XYSeries("Esperanza de Vida Normal");
         XYSeries seriesCalculada = new XYSeries("Esperanza de Vida Calculada");
 
-        // Predefinir el año inicial (2021)
-        int añoInicial = 2021;
-
         // Agregar los datos de la tabla a las series
         for (int i = 0; i < rowCount; i++) {
-            // El año aumenta de 1 por cada fila
-            int anio = añoInicial + i;
+            try {
+                // Leer el año de la tabla
+                int anio = (int) Double.parseDouble((String) model.getValueAt(i, 0));
 
-            // Obtener los valores de la tabla
-            double esperanzaVidaNormal = Double.parseDouble((String) model.getValueAt(i, 1)); // Esperanza de vida normal
-            double esperanzaVidaCalculada = Double.parseDouble((String) model.getValueAt(i, 6)); // Esperanza de vida calculada
+                // Leer los valores de la tabla para esperanza de vida
+                double esperanzaVidaNormal = Double.parseDouble((String) model.getValueAt(i, 2)); 
+                double esperanzaVidaCalculada = Double.parseDouble((String) model.getValueAt(i, 7));
 
-            // Agregar los datos a las series
-            seriesNormal.add(anio, esperanzaVidaNormal);
-            seriesCalculada.add(anio, esperanzaVidaCalculada);
+                // Agregar los datos a las series
+                seriesNormal.add(anio, esperanzaVidaNormal);
+                seriesCalculada.add(anio, esperanzaVidaCalculada);
+
+            } catch (NumberFormatException e) {
+                // Imprimir un error y continuar con la siguiente fila si los datos no son válidos
+                System.err.println("Error: El valor del año o los datos no son válidos en la fila " + i);
+                continue; // Saltar a la siguiente fila
+            }
         }
 
         // Crear el dataset para la gráfica
@@ -69,3 +72,4 @@ public class GraficaSimulacion {
         jpane1.validate(); // Validar el panel para actualizar los cambios
     }
 }
+

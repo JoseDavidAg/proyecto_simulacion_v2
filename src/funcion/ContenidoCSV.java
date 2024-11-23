@@ -15,7 +15,6 @@ public class ContenidoCSV {
     }
 
     public void agregarFila(String[] fila) {
-        
         filas.add(fila);
     }
 
@@ -60,8 +59,6 @@ public class ContenidoCSV {
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(null, "Error al leer el archivo: " + e.getMessage());
             }
-            JOptionPane.showMessageDialog(null, "Archivo leído con exito");
-        
         }
     }
 
@@ -69,4 +66,3 @@ public class ContenidoCSV {
         return encabezados;
     }
 }
-
